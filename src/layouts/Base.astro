@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import { site } from '../site';
-import { ui, href, asset, other, type Lang } from '../i18n';
+import { ui, href, other, type Lang } from '../i18n';
 
 interface Props { lang: Lang; path?: string; title?: string; description?: string; altHref?: string }
 const { lang, path = '', title, description, altHref } = Astro.props;
@@ -54,7 +54,6 @@ const pageTitle = title ? `${title} — ${name}` : name;
             <div class="tag">{t.contact}</div>
             <ul>
               <li><a href={`mailto:${site.email}`}>{t.email}</a></li>
-              <li><a href={asset(site.cv)}>{t.cv}</a></li>
             </ul>
           </div>
         </div>
