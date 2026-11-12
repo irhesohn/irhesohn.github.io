@@ -4,7 +4,7 @@ date: 2024-06-18
 category: essay
 lang: en
 summary: "On voting for the Korean Film Archive's 2024 list of the 100 best Korean films, what the result says about the present, and my own ten picks."
-tags: [canonization, national cinema, Korean Film Archive]
+topics: [canonization, national cinema, Korean Film Archive]
 draft: false
 ---
 
