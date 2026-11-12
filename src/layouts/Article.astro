@@ -1,0 +1,26 @@
+---
+import Base from './Base.astro';
+import type { Lang } from '../i18n';
+
+interface Props { lang: Lang; path: string; tag?: string; title: string; stand?: string; side?: string[]; altHref?: string; sections?: boolean }
+const { lang, path, tag, title, stand, side = [], altHref, sections = false } = Astro.props;
+---
+<Base lang={lang} path={path} title={title} description={stand} altHref={altHref}>
+  <div class="top">
+    {tag && <div class="tag">{tag}</div>}
+    <h1>{title}</h1>
+    {stand && <p class="stand">{stand}</p>}
+  </div>
+  {sections ? (
+    <div class="prose sections"><slot /></div>
+  ) : (
+    <div class="split">
+      <aside class="side">
+        <div class="side-meta">{side.map((line) => <div>{line}</div>)}</div>
+        <slot name="side" />
+      </aside>
+      <div class="prose"><slot /></div>
+    </div>
+  )}
+  <slot name="after" />
+</Base>

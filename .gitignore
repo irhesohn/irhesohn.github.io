@@ -1,0 +1,7 @@
+# 설치 파일 (node_modules 는 iCloud 동기화를 피하려고 node_modules.nosync 를 가리키는 바로가기)
+node_modules
+node_modules.nosync/
+dist/
+.astro/
+.DS_Store
+.publish.log

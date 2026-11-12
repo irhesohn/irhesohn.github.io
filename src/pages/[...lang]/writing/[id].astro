@@ -1,0 +1,124 @@
+---
+import { render } from 'astro:content';
+import Article from '../../../layouts/Article.astro';
+import { ui, href, postHref, postSlug, postKey, fmtDate, other } from '../../../i18n';
+import { allPosts, postsFor, translationOf } from '../../../posts';
+
+export async function getStaticPaths() {
+  const posts = await allPosts();
+  return posts.flatMap((post) => {
+    // 영어 글은 /writing/…, 한국어 글은 /ko/writing/…
+    const lang = post.data.lang === 'ko' ? 'ko' : undefined;
+    const list = postsFor(post.data.lang, posts);
+    const i = list.indexOf(post);
+    return [
+      // 실제 글 주소 (날짜 포함)
+      { params: { lang, id: postSlug(post) }, props: { post, newer: list[i - 1], older: list[i + 1], translation: translationOf(post, posts) } },
+      // 날짜 없는 주소는 날짜 있는 주소로 넘겨 줍니다
+      { params: { lang, id: postKey(post) }, props: { post, redirect: true } },
+    ];
+  });
+}
+const { post, newer, older, redirect, translation } = Astro.props;
+const target = postHref(post);
+let Content: any = null, headings: { depth: number; slug: string; text: string }[] = [];
+if (!redirect) ({ Content, headings } = await render(post));
+const lang = post.data.lang;
+const t = ui[lang];
+const cat = t.cat[post.data.category];
+const date = fmtDate(post.data.date, lang, true);
+// 목차: ## 소제목 아래에 ### 소제목을 접어서 둡니다
+type H = { depth: number; slug: string; text: string };
+const toc: (H & { subs: H[] })[] = [];
+for (const h of headings) {
+  if (h.depth === 2) toc.push({ ...h, subs: [] });
+  else if (h.depth === 3 && toc.length) toc[toc.length - 1].subs.push(h);
+}
+---
+{redirect ? (
+  <html lang={lang}>
+    <head>
+      <meta charset="utf-8" />
+      <title>{post.data.title}</title>
+      <meta http-equiv="refresh" content={`0; url=${target}`} />
+      <link rel="canonical" href={target} />
+    </head>
+    <body><a href={target}>{post.data.title}</a></body>
+  </html>
+) : (
+  <Article
+    lang={lang}
+    path="writing"
+    title={post.data.title}
+    stand={post.data.summary ?? undefined}
+    side={[`${t.writing} · ${cat}`, date, `${t.language}: ${t.langName}`]}
+    altHref={translation ? postHref(translation) : href(other(lang), 'writing')}
+  >
+    <Fragment slot="side">
+      {post.data.tags.length > 0 && (
+        <div class="side-block">
+          <div class="side-label">{t.tags}</div>
+          <ul class="tags">{post.data.tags.map((tag) => <li>{tag}</li>)}</ul>
+        </div>
+      )}
+      {toc.length >= 3 && (
+        <nav class="toc side-block" aria-label={t.contents}>
+          <div class="side-label">{t.contents}</div>
+          <ol>
+            {toc.map((h) => (
+              <li data-group>
+                <div class="row">
+                  <a href={`#${h.slug}`}>{h.text}</a>
+                  {h.subs.length > 0 && (
+                    <button type="button" class="fold" aria-expanded="false" aria-controls={`toc-${h.slug}`}
+                      aria-label={lang === 'ko' ? '하위 목차 펼치기' : 'Show subsections'}><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M4 2l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                  )}
+                </div>
+                {h.subs.length > 0 && (
+                  <ol class="subs" id={`toc-${h.slug}`} hidden>
+                    {h.subs.map((s) => <li><a href={`#${s.slug}`}>{s.text}</a></li>)}
+                  </ol>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+    </Fragment>
+    <Content />
+    <nav class="pager" slot="after">
+      <span>{older && <a href={postHref(older)} lang={older.data.lang}>← {older.data.title}</a>}</span>
+      <span>{newer && <a href={postHref(newer)} lang={newer.data.lang}>{newer.data.title} →</a>}</span>
+    </nav>
+  </Article>
+)}
+<script>
+  // 목차: 지금 읽는 소제목을 강조하고, 그 부분의 하위 목차를 자동으로 펼칩니다.
+  // 화살표로 직접 펼치거나 접은 항목은 자동으로 바뀌지 않습니다.
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.toc a')];
+  if (links.length) {
+    const heads = links.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))));
+    const groups = [...document.querySelectorAll<HTMLElement>('.toc [data-group]')];
+    const setOpen = (g: HTMLElement, open: boolean) => {
+      const btn = g.querySelector<HTMLButtonElement>('.fold');
+      const list = g.querySelector<HTMLElement>('.subs');
+      if (!btn || !list) return;
+      btn.setAttribute('aria-expanded', String(open));
+      list.hidden = !open;
+    };
+    groups.forEach((g) => g.querySelector('.fold')?.addEventListener('click', () => {
+      const open = g.querySelector('.fold')!.getAttribute('aria-expanded') !== 'true';
+      g.dataset.manual = open ? 'open' : 'closed';
+      setOpen(g, open);
+    }));
+    const update = () => {
+      let cur = 0;
+      heads.forEach((h, i) => { if (h && h.getBoundingClientRect().top < 140) cur = i; });
+      links.forEach((a, i) => a.toggleAttribute('aria-current', i === cur));
+      const curGroup = links[cur].closest<HTMLElement>('[data-group]');
+      groups.forEach((g) => { if (!g.dataset.manual) setOpen(g, g === curGroup); });
+    };
+    addEventListener('scroll', update, { passive: true });
+    update();
+  }
+</script>

@@ -1,0 +1,37 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostList from '../../components/PostList.astro';
+import { site } from '../../site';
+import { ui, href, asset, langPaths, type Lang } from '../../i18n';
+import { allPosts, postsFor } from '../../posts';
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const t = ui[lang];
+const s = site[lang];
+const posts = postsFor(lang, await allPosts()).slice(0, 4);
+---
+<Base lang={lang}>
+  <section class="hero">
+    <div class="l">
+      <div class="tag">{s.tag}</div>
+      <h1 set:html={s.hero} />
+    </div>
+    <div class="r">
+      <p>{s.intro}</p>
+      <a class="cv" href={asset(site.cv)}>{t.cvLink}</a>
+    </div>
+  </section>
+
+  <section class="sect plain">
+    <div class="two">
+      <a href={href(lang, 'research')}><h3>{t.research}</h3><p>{s.research}</p></a>
+      <a href={href(lang, 'teaching')}><h3>{t.teaching}</h3><p>{s.teaching}</p></a>
+    </div>
+  </section>
+
+  {posts.length > 0 && <section class="sect">
+    <div class="head"><div class="tag">{t.latest}</div><a href={href(lang, 'writing')}>{t.all}</a></div>
+    <PostList posts={posts} />
+  </section>}
+</Base>

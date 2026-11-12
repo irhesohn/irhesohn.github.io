@@ -1,0 +1,24 @@
+---
+import type { Pub } from '../data/publications';
+import type { Lang } from '../i18n';
+
+interface Props { heading: string; items: Pub[]; lang: Lang }
+const { heading, items, lang } = Astro.props;
+const pick = (t: { en: string; ko?: string }) => (lang === 'ko' && t.ko) || t.en;
+const html = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\*([^*]+)\*/g, '<em>$1</em>');
+---
+<h2>{heading}</h2>
+<ul class="pubs">
+  {items.map((p) => (
+    <li>
+      <span class="year">{p.status ? <span class="status">{pick(p.status)}</span> : p.year}</span>
+      <div>
+        <p class="ptitle">
+          <span set:html={html(pick(p.title))} />
+        </p>
+        <p class="venue" set:html={html(pick(p.venue))} />
+      </div>
+    </li>
+  ))}
+</ul>

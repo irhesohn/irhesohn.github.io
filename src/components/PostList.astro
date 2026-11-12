@@ -1,0 +1,17 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { ui, fmtDate, postHref } from '../i18n';
+
+interface Props { posts: CollectionEntry<'writing'>[] }
+const { posts } = Astro.props;
+---
+<ul class="posts">
+  {posts.map((p) => (
+    <li>
+      <a href={postHref(p)}>
+        <span class="t" lang={p.data.lang}>{p.data.title}</span>
+        <span class="m" lang={p.data.lang}>{ui[p.data.lang].cat[p.data.category]} · {fmtDate(p.data.date, p.data.lang)}</span>
+      </a>
+    </li>
+  ))}
+</ul>

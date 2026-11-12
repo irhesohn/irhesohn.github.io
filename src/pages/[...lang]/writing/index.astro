@@ -1,0 +1,20 @@
+---
+import Base from '../../../layouts/Base.astro';
+import PostList from '../../../components/PostList.astro';
+import { ui, langPaths, type Lang } from '../../../i18n';
+import { allPosts, postsFor } from '../../../posts';
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const t = ui[lang];
+const posts = postsFor(lang, await allPosts());
+---
+<Base lang={lang} path="writing" title={t.writingTitle} description={t.writingSummary}>
+  <div class="top">
+    <h1>{t.writingTitle}</h1>
+    <p class="stand">{t.writingSummary}</p>
+  </div>
+  <section class="sect">
+    {posts.length > 0 ? <PostList posts={posts} /> : <p class="empty">{t.empty}</p>}
+  </section>
+</Base>

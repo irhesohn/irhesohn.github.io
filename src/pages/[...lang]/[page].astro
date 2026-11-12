@@ -1,0 +1,28 @@
+---
+import { getEntry, render } from 'astro:content';
+import Article from '../../layouts/Article.astro';
+import { langs, ui, asset, type Lang } from '../../i18n';
+import { site } from '../../site';
+import PubList from '../../components/PubList.astro';
+import { books, articles } from '../../data/publications';
+
+export function getStaticPaths() {
+  return langs.flatMap((lang) =>
+    ['research', 'teaching', 'about'].map((page) => ({
+      params: { lang: lang === 'ko' ? 'ko' : undefined, page },
+      props: { lang },
+    })),
+  );
+}
+const { lang } = Astro.props as { lang: Lang };
+const { page } = Astro.params;
+const entry = await getEntry('pages', `${lang}/${page}`);
+if (!entry) throw new Error(`src/content/pages/${lang}/${page}.md 파일이 없습니다.`);
+const { Content } = await render(entry);
+---
+<Article sections lang={lang} path={page!} tag={entry.data.tag} title={entry.data.title} stand={entry.data.summary}>
+  {page === 'research' && <PubList heading={lang === 'ko' ? '저서' : 'Book'} items={books} lang={lang} />}
+  <Content />
+  {page === 'research' && <PubList heading={lang === 'ko' ? '논문과 단행본 수록 글' : 'Articles and book chapters'} items={articles} lang={lang} />}
+  {page === 'about' && <p class="cvdl"><a href={asset(site.cv)}>{ui[lang].cvLink}</a></p>}
+</Article>

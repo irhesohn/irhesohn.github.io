@@ -1,0 +1,68 @@
+---
+import '../styles/global.css';
+import { site } from '../site';
+import { ui, href, asset, other, type Lang } from '../i18n';
+
+interface Props { lang: Lang; path?: string; title?: string; description?: string; altHref?: string }
+const { lang, path = '', title, description, altHref } = Astro.props;
+const t = ui[lang];
+const s = site[lang];
+const section = path.split('/')[0];
+const menu = [['research', t.research], ['teaching', t.teaching], ['writing', t.writing], ['about', t.about]] as const;
+const alt = altHref ?? href(other(lang), path);
+const enHref = lang === 'en' ? href('en', path) : alt;
+const koHref = lang === 'ko' ? href('ko', path) : alt;
+const name = lang === 'ko' ? site.nameKo : site.name;
+const pageTitle = title ? `${title} — ${name}` : name;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description ?? s.intro} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Inter:wght@400;500&family=Noto+Sans+KR:wght@400;500&family=Noto+Serif+KR:wght@400;500;600&display=swap" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="nav">
+        <a class="name" href={href(lang)}>{name}</a>
+        <nav class="links">
+          {menu.map(([p, label]) => <a href={href(lang, p)} aria-current={section === p ? 'page' : undefined}>{label}</a>)}
+        </nav>
+        <div class="lang">
+          <a href={enHref} lang="en" aria-current={lang === 'en' ? 'true' : undefined}>EN</a>{' · '}<a href={koHref} lang="ko" aria-current={lang === 'ko' ? 'true' : undefined}>한국어</a>
+        </div>
+      </header>
+
+      <main><slot /></main>
+
+      <footer class="foot">
+        <div class="cols">
+          <div class="id">
+            <strong>{name}</strong>
+            <span>{s.affiliation[0]}<br />{s.affiliation[1]}</span>
+          </div>
+          <div>
+            <div class="tag">{t.site}</div>
+            <ul>{menu.map(([p, label]) => <li><a href={href(lang, p)}>{label}</a></li>)}</ul>
+          </div>
+          <div>
+            <div class="tag">{t.contact}</div>
+            <ul>
+              <li><a href={`mailto:${site.email}`}>{t.email}</a></li>
+              <li><a href={asset(site.cv)}>{t.cv}</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="bottom">
+          <span>© {new Date().getFullYear()} {name}</span>
+          <span><a href={enHref} lang="en">English</a> · <a href={koHref} lang="ko">한국어</a></span>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
