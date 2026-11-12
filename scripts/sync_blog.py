@@ -3,6 +3,7 @@
 사용: python3 sync_blog.py <블로그 폴더> <볼트 폴더> <사이트 폴더>
 - 블로그 폴더 바로 아래의 .md 파일만 다룹니다 (`_`로 시작하는 파일과 CLAUDE.md 제외).
 - 번역 쌍: `이름.ko.md` 와 `이름.en.md` 는 같은 글의 한국어판·영어판으로 묶입니다.
+- 사이트 태그는 topics 속성입니다. Obsidian의 tags 속성은 복사할 때 빼서 공개되지 않게 합니다.
 - draft: true 인 글은 복사하지 않습니다. GitHub 저장소가 공개라서 초고가 밖에 보이지 않게 하기 위해서입니다.
 - 300KB가 넘는 사진은 긴 변 1600px로 줄이고, JPEG는 품질 70으로 다시 저장해서 올립니다 (볼트의 원본은 그대로).
 - 유튜브 끼워 넣기: 한 줄에 `![설명](https://www.youtube.com/watch?v=ID&t=754)` 처럼 쓰면
@@ -67,6 +68,8 @@ for fname in posts:
         if not lm or lm.group(1) != suffix.group(1):
             problems.append(f'{fname}: 파일 이름은 .{suffix.group(1)} 인데 lang 속성이 다릅니다. lang: {suffix.group(1)} 로 고쳐 주세요.')
 
+    # Obsidian의 tags 속성은 볼트 안 정리용이라 공개 저장소로 보내지 않습니다 (사이트 태그는 topics)
+    front = re.sub(r'^tags:[^\n]*\n(?:[ \t]+-[^\n]*\n)*', '', front, flags=re.M)
     body = re.sub(r'%%.*?%%', '', body, flags=re.S)
 
     def embed(m):

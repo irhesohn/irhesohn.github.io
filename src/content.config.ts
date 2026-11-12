@@ -13,8 +13,9 @@ const writing = defineCollection({
     slug: z.string().optional(),
     // 번역 쌍: 한국어판과 영어판이 같은 pair 값을 가지면 한 글로 묶입니다 (올리기 스크립트가 자동으로 넣습니다)
     pair: z.string().optional(),
-    // 영어 태그. Obsidian에서 붙인 # 은 떼고 씁니다.
-    tags: z.array(z.string()).nullish().transform((v) => (v ?? []).map((t) => t.replace(/^#/, '').trim()).filter(Boolean)),
+    // 사이트에 보이는 태그는 topics 속성에서 읽습니다 (영어, 띄어쓰기 가능).
+    // Obsidian의 tags 속성은 볼트 안 정리용이라 사이트에서 읽지 않습니다.
+    topics: z.array(z.string()).nullish().transform((v) => (v ?? []).map((t) => t.trim()).filter(Boolean)),
     draft: z.boolean().default(false),
   }),
 });

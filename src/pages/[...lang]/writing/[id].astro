@@ -55,10 +55,10 @@ for (const h of headings) {
     altHref={translation ? postHref(translation) : href(other(lang), 'writing')}
   >
     <Fragment slot="side">
-      {post.data.tags.length > 0 && (
+      {post.data.topics.length > 0 && (
         <div class="side-block">
           <div class="side-label">{t.tags}</div>
-          <ul class="tags">{post.data.tags.map((tag) => <li>{tag}</li>)}</ul>
+          <ul class="tags">{post.data.topics.map((tag) => <li>{tag}</li>)}</ul>
         </div>
       )}
       {toc.length >= 3 && (
