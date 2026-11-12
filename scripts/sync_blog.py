@@ -5,7 +5,9 @@
 - 번역 쌍: `이름.ko.md` 와 `이름.en.md` 는 같은 글의 한국어판·영어판으로 묶입니다.
 - 사이트 태그는 topics 속성입니다. Obsidian의 tags 속성은 복사할 때 빼서 공개되지 않게 합니다.
 - draft: true 인 글은 복사하지 않습니다. GitHub 저장소가 공개라서 초고가 밖에 보이지 않게 하기 위해서입니다.
-- 300KB가 넘는 사진은 긴 변 1600px로 줄이고, JPEG는 품질 70으로 다시 저장해서 올립니다 (볼트의 원본은 그대로).
+- 사진(JPG·PNG·HEIC 등)은 올리기 전에 위치(GPS)·촬영 날짜·기기 정보를 모두 지우고,
+  긴 변 1600px로 줄여서 올립니다 (볼트의 원본은 그대로). HEIC는 JPG로 바뀝니다.
+  정보를 지우지 못한 사진은 올리지 않고 알려 줍니다. (scripts/clean_image.swift)
 - 유튜브 끼워 넣기: 한 줄에 `![설명](https://www.youtube.com/watch?v=ID&t=754)` 처럼 쓰면
   사이트에서는 그 시점부터 재생되는 영상으로 바뀝니다 (Obsidian에서도 영상으로 보입니다).
   t= 는 초(754), 754s, 12m34s, 1h2m3s 모두 됩니다.
@@ -15,6 +17,20 @@ import os, re, shutil, subprocess, sys, unicodedata
 from urllib.parse import quote
 
 src, vault, site = (os.path.abspath(a) for a in sys.argv[1:4])
+HERE = os.path.dirname(os.path.abspath(__file__))
+_cleaner = None
+def cleaner():
+    """사진 정리 도구(clean_image)를 처음 한 번 컴파일해 둡니다."""
+    global _cleaner
+    if _cleaner is None:
+        srcf = os.path.join(HERE, 'clean_image.swift'); binf = os.path.join(HERE, '.bin', 'clean_image')
+        if not os.path.exists(binf) or os.path.getmtime(binf) < os.path.getmtime(srcf):
+            os.makedirs(os.path.dirname(binf), exist_ok=True)
+            r = subprocess.run(['swiftc', '-O', '-o', binf, srcf], capture_output=True, text=True)
+            if r.returncode != 0:
+                _cleaner = ''; return ''
+        _cleaner = binf
+    return _cleaner
 dest = os.path.join(site, 'src', 'content', 'writing')
 media = os.path.join(site, 'public', 'writing-media')
 SKIP_DIRS = {'.obsidian', '.trash', '.git', 'node_modules', '.archive'}
@@ -75,20 +91,27 @@ for fname in posts:
     def embed(m):
         target, _, alt = m.group(1).partition('|')
         target = target.split('#')[0].strip()
+        target_name = target
         path = find_in_vault(target)
         if not path or not os.path.isfile(path):
             problems.append(f'{fname}: 이미지 "{target}"를 볼트에서 찾지 못했습니다.'); return ''
-        if not re.search(r'\.(png|jpe?g|gif|webp|svg|avif)$', path, re.I):
+        if not re.search(r'\.(png|jpe?g|heic|heif|tiff?|gif|webp|svg|avif)$', path, re.I):
             problems.append(f'{fname}: "{target}"는 이미지가 아니라서 뺐습니다.'); return ''
         img = unicodedata.normalize('NFC', os.path.basename(path))
+        img = re.sub(r'\.(heic|heif|tiff?)$', '.jpg', img, flags=re.I)  # 웹에서 못 여는 형식은 JPG로
         out = os.path.join(media, stem); os.makedirs(out, exist_ok=True)
-        shutil.copy2(path, os.path.join(out, img))
         target = os.path.join(out, img)
-        if os.path.getsize(path) > 300_000 and re.search(r'\.(png|jpe?g)$', img, re.I):
-            cmd = ['sips', '-Z', '1600']
-            if re.search(r'\.jpe?g$', img, re.I):
-                cmd += ['-s', 'formatOptions', '70']
-            subprocess.run(cmd + [target], capture_output=True)
+        if re.search(r'\.(png|jpe?g)$', img, re.I):
+            # 메타데이터(위치 등)를 지우고 크기를 줄여서 저장
+            tool = cleaner()
+            quality = '0.75' if os.path.getsize(path) > 300_000 else '0.9'
+            ok = bool(tool) and subprocess.run([tool, path, target, '1600', quality], capture_output=True).returncode == 0
+            if not ok:
+                if os.path.exists(target): os.remove(target)
+                problems.append(f'{fname}: 사진 "{target_name}"의 위치·촬영 정보를 지우지 못해서 올리지 않았습니다.')
+                return ''
+        else:
+            shutil.copy2(path, target)  # GIF·WebP·SVG 등은 그대로 (메타데이터를 지우지 않음)
         alt = alt if alt and not alt.isdigit() else ''
         return f'![{alt}](/writing-media/{quote(stem)}/{quote(img)})'
     body = re.sub(r'!\[\[([^\]]+)\]\]', embed, body)
