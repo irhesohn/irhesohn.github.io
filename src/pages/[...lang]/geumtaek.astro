@@ -1,0 +1,56 @@
+---
+// 금택 (2009–2023). 예전 블로그 irhesohn.com/geumtaek/ 의 추모 페이지를 같은 주소로 복원했습니다.
+// 사진은 위치 정보 등 메타데이터를 지우고 긴 변 1600px로 줄인 사본입니다 (public/geumtaek/).
+import Base from '../../layouts/Base.astro';
+import { langPaths, asset, type Lang } from '../../i18n';
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const img = (n: string) => asset('geumtaek/' + n);
+---
+<Base lang={lang} path="geumtaek" title="금택 Geumtaek" description="in memory of Geumtaek (2009–2023)">
+  <div class="top cat-top">
+    <div class="tag">in memory of</div>
+    <h1>금택 Geumtaek 金沢</h1>
+    <p class="stand">2009–2023</p>
+  </div>
+  <div class="cat-grid">
+    <img src={img("Geumtaek-2009-10-05.jpg")} alt="" loading="lazy" />
+    <img src={img("Geumtaek-2009-11-01-2.jpg")} alt="" loading="lazy" />
+    <img src={img("Geumtaek-2010-07-15-4.jpg")} alt="" loading="lazy" />
+    <img src={img("Geumtaek-2010-07-15-1.jpg")} alt="" loading="lazy" />
+    <img src={img("DSC00660.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_1201.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_7434.jpg")} alt="" loading="lazy" />
+    <img src={img("DSC00597.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_9175.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_9163.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_7532.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_1637.jpg")} alt="" loading="lazy" />
+  </div>
+  <figure class="cat-video">
+    <video src={img("geumtaek-walking.mp4")} controls playsinline preload="metadata"></video>
+  </figure>
+  <div class="cat-grid">
+    <img src={img("IMG_7477.jpg")} alt="" loading="lazy" />
+    <img src={img("Geumtaek-2009-12-04-3.jpg")} alt="" loading="lazy" />
+    <img src={img("DSC00613.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_3260.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_8905.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_1118.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_9203.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_9244.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_8972.jpg")} alt="" loading="lazy" />
+    <img src={img("Geumtaek-2009-12-08-2.jpg")} alt="" loading="lazy" />
+    <img src={img("Geumtaek-2009-12-08-4.jpg")} alt="" loading="lazy" />
+    <img src={img("IMG_0124.jpg")} alt="" loading="lazy" />
+  </div>
+  <div class="cat-letter" lang="en">
+    <p class="date">November 18, 2023</p>
+    <p>Cliche as it may sound, you came to my dream when you took your last breath thousands of miles away from me. Or should I say I visited you in your dream? Just like a Ghibli movie, a cat led me to an unseen back alley. There, I saw many, many cats. There you were. I am not sure if you were smiling or sobbing. You were there. With many, many cats. Now that I think about it, it must have been the world for cats who crossed the rainbow bridge.</p>
+    <p>Little did I know then; you left my world. My dad texted me with my drawing of you. He added two bows on it, just like we humans do for funeral photos of the departed. But at your funeral, I couldn't be there. No one could be there. Cats, it is said, do not want to display their most vulnerable moments so much that they would seek out a secret garden to greet the gods on their dying day. You died alone. No one was there. I wasn't there. So I am angry. About you going like that. About me not knowing like that. I am so sorry. With your presence, the night I slept through shone brightly over the dark moon. It sparkled with you, then with my guilt.</p>
+    <p>But what am I to do? What can I do but recall the day you came to me, regret that I couldn't bring you with me here, think of the relief that you became the cat who enjoyed a stroll outside? What can I do but rummage through photo albums to find you and relive those memories? What else can I do but think about you?</p>
+    <p>I miss you so much.</p>
+    <p class="date">Three days since you left us</p>
+  </div>
+</Base>
