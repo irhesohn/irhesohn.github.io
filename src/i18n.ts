@@ -57,3 +57,11 @@ export function fmtDate(d: Date, lang: Lang, long = false) {
     ? { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }
     : { month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
+
+/** 제목 안의 기울임(영화·책 제목): <i>…</i>, <em>…</em>, *…* 를 이탤릭으로 보여 줍니다. 다른 HTML은 글자 그대로 둡니다. */
+export const titleHtml = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/&lt;(i|em)&gt;(.*?)&lt;\/\1&gt;/g, '<em>$2</em>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+/** 브라우저 탭 제목 등 글자만 쓰는 곳: 기울임 표시를 뺀 순수한 글자 */
+export const titleText = (s: string) => s.replace(/<\/?(i|em)>/g, '').replace(/\*([^*]+)\*/g, '$1');

@@ -1,6 +1,6 @@
 ---
 import Base from './Base.astro';
-import type { Lang } from '../i18n';
+import { titleHtml, type Lang } from '../i18n';
 
 interface Props { lang: Lang; path: string; tag?: string; title: string; stand?: string; side?: string[]; altHref?: string; sections?: boolean }
 const { lang, path, tag, title, stand, side = [], altHref, sections = false } = Astro.props;
@@ -8,7 +8,7 @@ const { lang, path, tag, title, stand, side = [], altHref, sections = false } = 
 <Base lang={lang} path={path} title={title} description={stand} altHref={altHref}>
   <div class="top">
     {tag && <div class="tag">{tag}</div>}
-    <h1>{title}</h1>
+    <h1 set:html={titleHtml(title)} />
     {stand && <p class="stand">{stand}</p>}
   </div>
   {sections ? (

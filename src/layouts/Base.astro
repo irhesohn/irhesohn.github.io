@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import { site } from '../site';
-import { ui, href, other, type Lang } from '../i18n';
+import { ui, href, other, titleText, type Lang } from '../i18n';
 
 interface Props { lang: Lang; path?: string; title?: string; description?: string; altHref?: string }
 const { lang, path = '', title, description, altHref } = Astro.props;
@@ -13,7 +13,7 @@ const alt = altHref ?? href(other(lang), path);
 const enHref = lang === 'en' ? href('en', path) : alt;
 const koHref = lang === 'ko' ? href('ko', path) : alt;
 const name = lang === 'ko' ? site.nameKo : site.name;
-const pageTitle = title ? `${title} — ${name}` : name;
+const pageTitle = title ? `${titleText(title)} — ${name}` : name;
 ---
 <!doctype html>
 <html lang={lang}>

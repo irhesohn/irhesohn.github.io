@@ -1,7 +1,7 @@
 ---
 import { render } from 'astro:content';
 import Article from '../../../layouts/Article.astro';
-import { ui, href, postHref, postSlug, postKey, fmtDate, other } from '../../../i18n';
+import { ui, href, postHref, postSlug, postKey, fmtDate, other, titleHtml, titleText } from '../../../i18n';
 import { allPosts, postsFor, translationOf } from '../../../posts';
 
 export async function getStaticPaths() {
@@ -39,11 +39,11 @@ for (const h of headings) {
   <html lang={lang}>
     <head>
       <meta charset="utf-8" />
-      <title>{post.data.title}</title>
+      <title>{titleText(post.data.title)}</title>
       <meta http-equiv="refresh" content={`0; url=${target}`} />
       <link rel="canonical" href={target} />
     </head>
-    <body><a href={target}>{post.data.title}</a></body>
+    <body><a href={target}>{titleText(post.data.title)}</a></body>
   </html>
 ) : (
   <Article
@@ -87,8 +87,8 @@ for (const h of headings) {
     </Fragment>
     <Content />
     <nav class="pager" slot="after">
-      <span>{older && <a href={postHref(older)} lang={older.data.lang}>← {older.data.title}</a>}</span>
-      <span>{newer && <a href={postHref(newer)} lang={newer.data.lang}>{newer.data.title} →</a>}</span>
+      <span>{older && <a href={postHref(older)} lang={older.data.lang}>← <span set:html={titleHtml(older.data.title)} /></a>}</span>
+      <span>{newer && <a href={postHref(newer)} lang={newer.data.lang}><span set:html={titleHtml(newer.data.title)} /> →</a>}</span>
     </nav>
   </Article>
 )}
