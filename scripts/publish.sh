@@ -27,12 +27,15 @@ git add src/content/writing public/writing-media 2>/dev/null
 git add -A src/content/writing
 if git diff --cached --quiet; then
   echo "바뀐 글이 없어 올리지 않았습니다."
+  python3 scripts/sync_blog.py "$BLOG" "$VAULT" "$SITE" --file-away
   exit 0
 fi
 git commit -q -m "Publish writing from Obsidian" || { echo "커밋하지 못했습니다."; exit 1; }
 git pull -q --rebase origin main >/dev/null 2>&1
 if git push -q origin main 2>"$LOG"; then
   echo "올렸습니다. 1–2분 뒤 irhesohn.com 에 반영됩니다."
+  # 공개된 글은 Published/ 로, 비공개로 돌린 글은 블로그 폴더로 정리
+  python3 scripts/sync_blog.py "$BLOG" "$VAULT" "$SITE" --file-away
 else
   echo "GitHub에 올리지 못했습니다:"; head -5 "$LOG"; exit 1
 fi

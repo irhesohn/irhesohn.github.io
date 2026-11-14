@@ -1,7 +1,9 @@
 """Obsidian 블로그 폴더의 글을 사이트로 복사하고 Obsidian 문법을 바꿉니다.
 
 사용: python3 sync_blog.py <블로그 폴더> <볼트 폴더> <사이트 폴더>
-- 블로그 폴더 바로 아래의 .md 파일만 다룹니다 (`_`로 시작하는 파일과 CLAUDE.md 제외).
+- 블로그 폴더 바로 아래와 Published/ 폴더의 .md 파일을 다룹니다 (`_`로 시작하는 파일과 CLAUDE.md 제외).
+  작업 중인 글은 블로그 폴더에, 공개된 글은 Published/ 에 둡니다. --file-away 로 실행하면
+  공개된 글(draft: false)은 Published/ 로, 비공개로 돌린 글은 블로그 폴더로 옮깁니다.
 - 번역 쌍: `이름.ko.md` 와 `이름.en.md` 는 같은 글의 한국어판·영어판으로 묶입니다.
 - 사이트 태그는 topics 속성입니다. Obsidian의 tags 속성은 복사할 때 빼서 공개되지 않게 합니다.
 - draft: true 인 글은 복사하지 않습니다. GitHub 저장소가 공개라서 초고가 밖에 보이지 않게 하기 위해서입니다.
@@ -49,8 +51,31 @@ def find_in_vault(name):
         if base in files: return os.path.join(root, base)
     return _index.get(base)
 
-posts = sorted(f for f in os.listdir(src)
-               if f.endswith('.md') and not f.startswith(('_', '.')) and f != 'CLAUDE.md')
+PUBLISHED = os.path.join(src, 'Published')
+def is_post(f): return f.endswith('.md') and not f.startswith(('_', '.')) and f != 'CLAUDE.md'
+where = {}  # 파일 이름 → 실제 위치 (블로그 폴더 또는 Published/)
+for d in (src, PUBLISHED):
+    if os.path.isdir(d):
+        for f in os.listdir(d):
+            if is_post(f):
+                if f in where: print(f'주의: {f} 이(가) 블로그 폴더와 Published/ 양쪽에 있습니다. Published/ 쪽을 씁니다.')
+                where[f] = os.path.join(d, f)
+
+if '--file-away' in sys.argv:
+    # 올리기가 끝난 뒤: 공개된 글은 Published/ 로, 비공개 글은 블로그 폴더로
+    moved = []
+    for f, path in sorted(where.items()):
+        head = open(path, encoding='utf-8').read().split('\n---', 1)[0]
+        draft = bool(re.search(r'^draft:\s*true', head, re.M))
+        want = src if draft else PUBLISHED
+        if os.path.dirname(path) != want and not os.path.exists(os.path.join(want, f)):
+            os.makedirs(want, exist_ok=True)
+            shutil.move(path, os.path.join(want, f))
+            moved.append(('작업 중으로' if draft else 'Published로') + f' 옮김: {f}')
+    for m in moved: print(m)
+    sys.exit(0)
+
+posts = sorted(where)
 if not posts:
     print('60.Blog 폴더에 글이 없습니다.'); sys.exit(0)
 
@@ -64,7 +89,7 @@ for fname in posts:
     pair = stem[:suffix.start()] if suffix else None
     out_name = f'{pair}--{suffix.group(1)}.md' if suffix else fname
     if suffix: stem = f'{pair}--{suffix.group(1)}'
-    text = open(os.path.join(src, fname), encoding='utf-8').read()
+    text = open(where[fname], encoding='utf-8').read()
     if not text.startswith('---'):
         problems.append(f'{fname}: 맨 위 속성(---)이 없습니다.'); continue
     end = text.index('\n---', 3) + 4
